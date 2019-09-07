@@ -7,6 +7,7 @@ namespace surfm.tool.realtimedb {
         void init();
         CallbackListT<RealtimeDB> initDoneCB();
         void put(string path, object val, Action<Exception> exCB = null);
+        void putJson(string path, object val, Action<Exception> exCB = null);
         void subscribe(string path,Action<string> val);
 
 

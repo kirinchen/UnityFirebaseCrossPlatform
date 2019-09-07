@@ -55,6 +55,7 @@ namespace surfm.tool.realtimedb {
         public void put(string path, object v2, Action<Exception> exCB = null) {
             DatabaseReference f = getPath(path);
             Task t = f.SetValueAsync(v2);
+            
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
@@ -83,6 +84,15 @@ namespace surfm.tool.realtimedb {
                 l = subscribeMap[path];
             }
             l.add(val);
+        }
+
+        public void putJson(string path, object val, Action<Exception> exCB = null) {
+            DatabaseReference f = getPath(path);
+            string json = CommUtils.toJson(val);
+            Task t = f.SetRawJsonValueAsync(json);
+            t.ContinueWith(task => {
+                exCB?.Invoke(task.Exception);
+            });
         }
     }
 }
