@@ -89,7 +89,9 @@ namespace surfm.tool.realtimedb {
         }
 
         public void putJson(string path, object val, Action<Exception> exCB = null) {
+            if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
+            
             string json = CommUtils.toJson(val);
             Task t = f.SetRawJsonValueAsync(json);
             t.ContinueWith(task => {
