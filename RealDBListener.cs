@@ -12,7 +12,6 @@ namespace surfm.tool.realtimedb {
             path = p;
         }
 
-
         public void eventHandler(object sender, ValueChangedEventArgs e) {
             list.ForEach(cb=> cb(e.Snapshot.GetRawJsonValue()));
         }

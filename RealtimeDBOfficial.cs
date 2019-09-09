@@ -53,13 +53,14 @@ namespace surfm.tool.realtimedb {
         }
 
         public void put(string path, object v2, Action<Exception> exCB = null) {
+            if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
             Task t = f.SetValueAsync(v2);
             
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
-
+            
         }
 
         private DatabaseReference getPath(string path) {
@@ -75,6 +76,7 @@ namespace surfm.tool.realtimedb {
 
 
         public void subscribe(string path, Action<string> val) {
+            if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
             RealDBListener l = null;
             if (!subscribeMap.ContainsKey(path)) {
