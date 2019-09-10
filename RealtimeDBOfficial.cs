@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace surfm.tool.realtimedb {
     public class RealtimeDBOfficial : RealtimeDB {
-        private UnityMainThreadDispatcher unityMainThread;
         private CallbackListT<RealtimeDB> initCB;
         private Firebase.Auth.FirebaseUser user;
         private string email = ConstantRepo.getInstance().get<string>("RealtimeDB.email");
@@ -20,7 +19,6 @@ namespace surfm.tool.realtimedb {
         }
 
         public void init() {
-            unityMainThread = UnityMainThreadDispatcher.instance();
             FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
             auth.SignInWithEmailAndPasswordAsync(email, pass).ContinueWith(task => {
                 if (task.IsCanceled) {
@@ -33,8 +31,9 @@ namespace surfm.tool.realtimedb {
                 }
 
                 user = task.Result;
-                unityMainThread.Enqueue(() => {
+                UnityMainThreadDispatcher.uniRxRun(() => {
                     initCB.done(this);
+                    Debug.Log("initCB.done");
                 });
                 Debug.LogFormat("Firebase user login successfully: {0} ({1})",
                     user.DisplayName, user.UserId);
@@ -56,11 +55,11 @@ namespace surfm.tool.realtimedb {
             if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
             Task t = f.SetValueAsync(v2);
-            
+
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
-            
+
         }
 
         private DatabaseReference getPath(string path) {
@@ -91,7 +90,7 @@ namespace surfm.tool.realtimedb {
         public void putJson(string path, object val, Action<Exception> exCB = null) {
             if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
-            
+
             string json = CommUtils.toJson(val);
             Task t = f.SetRawJsonValueAsync(json);
             t.ContinueWith(task => {

@@ -13,6 +13,7 @@ namespace surfm.tool.realtimedb {
         public string uid { get; private set; }
         public bool dataSubscribed { get; private set; }
         public CallbackList onEmptyCB { get; private set; } = new CallbackList();
+        public CallbackList onFetchedCB { get; private set; } = new CallbackList();
 
 
         protected abstract string pathPrefix();
@@ -23,31 +24,36 @@ namespace surfm.tool.realtimedb {
             RealtimeDBFactory.get().initDoneCB().add(init);
         }
 
-        private string getPath() {
-            return pathPrefix() + uid + "/";
+        public string getPath(string subfix) {
+            return pathPrefix() + uid + "/"+ subfix;
         }
 
         private void init(RealtimeDB rdb) {
-            string hashPath = getPath() + DATA_HASH_PATH;
-            rdb.subscribe(hashPath, onSha1Change);
+            string hashPath = getPath(DATA_HASH_PATH) ;
+            rdb.subscribe(hashPath, onHash);
         }
 
-        private void onSha1Change(string obj) {
+        private void onHash(string obj) {
             if (string.IsNullOrWhiteSpace(obj)) onEmptyCB.done();
+            bool fetched = true;
             if (!dataSubscribed) {
                 string orgSha1 = loadHash();
                 if (!orgSha1.Equals(obj)) {
+                    fetched = false;
                     subscribeData();
                 }
             }
             storeSha1(obj);
+            if (fetched) onFetchedCB.done();
+
         }
 
         private void subscribeData() {
-            string dataPath = getPath() + DATA_PATH;
+            string dataPath = getPath(DATA_PATH) ;
             RealtimeDBFactory.get().subscribe(dataPath, s => {
                 replaceData(s);
                 dataSubscribed = true;
+                onFetchedCB.done();
             });
         }
 
@@ -57,19 +63,19 @@ namespace surfm.tool.realtimedb {
         }
 
         private T loadData() {
-            return CommUtils.convertByJson<T>(ObscuredPrefs.GetString(getPath() + DATA_PATH, ""));
+            return CommUtils.convertByJson<T>(ObscuredPrefs.GetString(getPath(DATA_PATH)  , ""));
         }
 
         private void storeData(string s) {
-            ObscuredPrefs.SetString(getPath() + DATA_PATH, s);
+            ObscuredPrefs.SetString(getPath(DATA_PATH)  , s);
         }
 
         private void storeSha1(string sha1) {
-            ObscuredPrefs.SetString(getPath() + DATA_HASH_PATH, sha1);
+            ObscuredPrefs.SetString(getPath(DATA_HASH_PATH)  , sha1);
         }
 
         public string loadHash() {
-            return ObscuredPrefs.GetString(getPath() + DATA_HASH_PATH,"");
+            return ObscuredPrefs.GetString(getPath(DATA_HASH_PATH)  ,"");
         }
     }
 }
