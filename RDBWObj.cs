@@ -7,8 +7,8 @@ namespace surfm.tool.realtimedb {
 
         public RDBRObj<T> rObj { get; private set; }
         public CallbackList fetchDoneCb { get; private set; } = new CallbackList();
-
         public T obj { get; private set; }
+        public string uid { get { return rObj.uid; } }
 
         public RDBWObj(RDBRObj<T> ro) {
             rObj = ro;
