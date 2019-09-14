@@ -1,4 +1,5 @@
 ﻿using Firebase.Storage;
+using System;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -13,17 +14,32 @@ namespace surfm.tool.realtimedb {
             authDoneCB = RealtimeDBFactory.getAuther().auth().authDoneCB();
         }
 
+        public void getDownloadUrl(string fbPath, Action<Uri> cb) {
+            authDoneCB.add(() => {
+                StorageReference reference = getByPath(fbPath);
+                reference.GetDownloadUrlAsync().ContinueWith(tk =>
+                        UnityMainThreadDispatcher.uniRxRun(() => {
+                            cb(tk.Result);
+                        })
+                 );
+            });
+        }
+
         public void uploadAutoHash(byte[] custom_bytes, string dirFormat) {
             string sha1 = CommUtils.getSha1(custom_bytes);
             string path = string.Format(dirFormat, sha1);
             upload(custom_bytes, path);
         }
 
+        private StorageReference getByPath(string path) {
+            FirebaseStorage storage = FirebaseStorage.DefaultInstance;
+            Firebase.Storage.StorageReference storage_ref = storage.GetReferenceFromUrl(bucketUrl);
+            return storage_ref.Child(path);
+        }
+
         public void upload(byte[] custom_bytes, string fbPath) {
             authDoneCB.add(() => {
-                FirebaseStorage storage = FirebaseStorage.DefaultInstance;
-                Firebase.Storage.StorageReference storage_ref = storage.GetReferenceFromUrl(bucketUrl);
-                Firebase.Storage.StorageReference rivers_ref = storage_ref.Child(fbPath);
+                StorageReference rivers_ref = getByPath(fbPath);
                 // Upload the file to the path "images/rivers.jpg"
                 rivers_ref.PutBytesAsync(custom_bytes)
                   .ContinueWith((Task<StorageMetadata> task) => {
