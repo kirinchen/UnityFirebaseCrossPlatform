@@ -1,6 +1,5 @@
 ﻿#if !UNITY_WEBGL
 
-using Firebase.Auth;
 using Firebase.Database;
 using System;
 using System.Threading.Tasks;
@@ -9,7 +8,7 @@ using UnityEngine;
 namespace surfm.tool.realtimedb {
     public class RealtimeDBOfficial : RealtimeDB {
         private CallbackListT<RealtimeDB> initCB;
-     
+
 
 
         public RealtimeDBOfficial() {
@@ -17,8 +16,13 @@ namespace surfm.tool.realtimedb {
         }
 
         public void init(FirebaseAuther fau) {
-            fau.auth().authDoneCB().add(()=> initCB.done(this));
+            fau.auth().authDoneCB().add(onAuthed);
 
+        }
+
+        private void onAuthed() {
+            Debug.Log("RealtimeDBOfficial onAuthed!");
+            initCB.done(this);
         }
 
         public CallbackListT<RealtimeDB> initDoneCB() {
