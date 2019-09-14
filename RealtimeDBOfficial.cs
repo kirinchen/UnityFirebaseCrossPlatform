@@ -9,37 +9,15 @@ using UnityEngine;
 namespace surfm.tool.realtimedb {
     public class RealtimeDBOfficial : RealtimeDB {
         private CallbackListT<RealtimeDB> initCB;
-        private Firebase.Auth.FirebaseUser user;
-        private string email = ConstantRepo.getInstance().get<string>("RealtimeDB.email");
-        private string pass = ConstantRepo.getInstance().get<string>("RealtimeDB.pass");
+     
+
 
         public RealtimeDBOfficial() {
             initCB = new CallbackListT<RealtimeDB>();
-            init();
         }
 
-        public void init() {
-            FirebaseAuth auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
-            auth.SignInWithEmailAndPasswordAsync(email, pass).ContinueWith(task => {
-                if (task.IsCanceled) {
-                    Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
-                    return;
-                }
-                if (task.IsFaulted) {
-                    Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
-                    return;
-                }
-
-                user = task.Result;
-                UnityMainThreadDispatcher.uniRxRun(() => {
-                    initCB.done(this);
-                    Debug.Log("initCB.done");
-                });
-                Debug.LogFormat("Firebase user login successfully: {0} ({1})",
-                    user.DisplayName, user.UserId);
-
-
-            });
+        public void init(FirebaseAuther fau) {
+            fau.auth().authDoneCB().add(()=> initCB.done(this));
 
         }
 
@@ -48,7 +26,7 @@ namespace surfm.tool.realtimedb {
         }
 
         public bool isInited() {
-            return user != null;
+            return initCB.isDone();
         }
 
         public void put(string path, object v2, Action<Exception> exCB = null) {
