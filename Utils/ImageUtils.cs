@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace surfm.tool.realtimedb {
     public class ImageUtils {
@@ -9,9 +10,9 @@ namespace surfm.tool.realtimedb {
         private float imgHeight = ConstantRepo.getInstance().get<float>("Firebase.Image.height");
 
 
-        public void uploadFile(string filePath,string fbDir) {
+        public void uploadFile(string filePath,string fbDir,Action<string> cb) {
             Texture2D t = resize(filePath);
-            StorageUtils.instance.uploadAutoHash(ImageConversion.EncodeToJPG(t), fbDir+"/{0}.jpg");
+            StorageUtils.instance.uploadAutoHash(ImageConversion.EncodeToJPG(t), fbDir+"/{0}.jpg",cb);
         }
 
         public Texture2D resize(string path) {

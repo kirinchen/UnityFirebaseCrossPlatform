@@ -25,10 +25,10 @@ namespace surfm.tool.realtimedb {
             });
         }
 
-        public void uploadAutoHash(byte[] custom_bytes, string dirFormat) {
+        public void uploadAutoHash(byte[] custom_bytes, string dirFormat, Action<string> cb) {
             string sha1 = CommUtils.getSha1(custom_bytes);
             string path = string.Format(dirFormat, sha1);
-            upload(custom_bytes, path);
+            upload(custom_bytes, path, cb);
         }
 
         private StorageReference getByPath(string path) {
@@ -37,7 +37,7 @@ namespace surfm.tool.realtimedb {
             return storage_ref.Child(path);
         }
 
-        public void upload(byte[] custom_bytes, string fbPath) {
+        public void upload(byte[] custom_bytes, string fbPath, Action<string> cb) {
             authDoneCB.add(() => {
                 StorageReference rivers_ref = getByPath(fbPath);
                 // Upload the file to the path "images/rivers.jpg"
@@ -50,8 +50,11 @@ namespace surfm.tool.realtimedb {
                           // Metadata contains file metadata such as size, content-type, and download URL.
                           Firebase.Storage.StorageMetadata metadata = task.Result;
                           string download_url = metadata.Path;
-                          Debug.Log("Finished uploading...");
-                          Debug.Log("download url = " + download_url);
+                          UnityMainThreadDispatcher.uniRxRun(() => {
+                              cb(metadata.Path);
+                              Debug.Log("Finished uploading...");
+                          });
+
                       }
                   });
             });
