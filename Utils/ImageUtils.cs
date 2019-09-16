@@ -10,14 +10,23 @@ namespace surfm.tool.realtimedb {
         private float imgHeight = ConstantRepo.getInstance().get<float>("Firebase.Image.height");
 
 
-        public void uploadFile(string filePath,string fbDir,Action<string> cb) {
+        public void uploadFile(string filePath, string fbDir, Action<string> cb) {
             Texture2D t = resize(filePath);
-            StorageUtils.instance.uploadAutoHash(ImageConversion.EncodeToJPG(t), fbDir+"/{0}.jpg",cb);
+            StorageUtils.instance.uploadAutoHash(ImageConversion.EncodeToJPG(t), fbDir + "/{0}.jpg", cb);
         }
 
         public Texture2D resize(string path) {
-            Texture2D orgT = NativeToolkit.LoadImageFromFile(path);
+            Texture2D orgT = LoadImageFromFile(path);
             return resize(orgT);
+        }
+
+        public static Texture2D LoadImageFromFile(string path) {
+            if (path == "Cancelled") return null;
+            byte[] bytes;
+            Texture2D texture = new Texture2D(128, 128, TextureFormat.RGB24, false);
+            bytes = System.IO.File.ReadAllBytes(path);
+            texture.LoadImage(bytes);
+            return texture;
         }
 
         public Texture2D resize(Texture2D t2d) {
