@@ -35,8 +35,11 @@ namespace surfm.tool.realtimedb {
             string nShal = getHash();
             string oldSha1 = rObj.loadHash();
             if (nShal.Equals(oldSha1)) return;
-            RealtimeDBFactory.get().put(rObj.getPath(RDBRObj<T>.DATA_HASH_PATH), nShal);
-            RealtimeDBFactory.get().putJson(rObj.getPath(RDBRObj<T>.DATA_PATH), obj);
+            Map<string, object> _da = new Map<string, object>();
+            _da.put("hash", nShal);
+            _da.put("data", obj);
+            RealtimeDBFactory.get().putJson(rObj.getPath(""), obj);
+
         }
 
         private string getHash() {
