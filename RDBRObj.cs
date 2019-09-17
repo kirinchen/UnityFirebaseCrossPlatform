@@ -58,7 +58,9 @@ namespace surfm.tool.realtimedb {
         }
 
         private void replaceData(string s) {
-            obj.Value = CommUtils.convertByJson<T>(s);
+            if (!string.IsNullOrWhiteSpace(s)) {
+                obj.Value = CommUtils.convertByJson<T>(s);
+            }
             storeData(s);
         }
 
