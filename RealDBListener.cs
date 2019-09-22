@@ -13,7 +13,7 @@ namespace surfm.tool.realtimedb {
         }
 
         public void eventHandler(object sender, ValueChangedEventArgs e) {
-            list.ForEach(cb=> cb(e.Snapshot.GetRawJsonValue()));
+            list.ForEach(cb=>  UnityMainThreadDispatcher.uniRxRun(()=> { cb(e.Snapshot.GetRawJsonValue()); })  );
         }
 
         public void add(Action<string> cb) {

@@ -1,6 +1,8 @@
 ﻿#if !UNITY_WEBGL
 
+using Firebase;
 using Firebase.Database;
+using Firebase.Unity.Editor;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -22,6 +24,7 @@ namespace surfm.tool.realtimedb {
 
         private void onAuthed() {
             Debug.Log("RealtimeDBOfficial onAuthed!");
+            FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://dreamon-61d89.firebaseio.com/");
             initCB.done(this);
         }
 
