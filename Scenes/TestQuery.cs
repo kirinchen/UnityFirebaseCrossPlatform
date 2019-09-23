@@ -66,7 +66,7 @@ public class TestQuery : MonoBehaviour {
         for (int i=-10;i<10;i++) {
             for (int j = -10; j < 10; j++) {
                 Vector2Int v = new Vector2Int(i,j);
-                string hash = GeoHashUtils.calcGeoHash(i,j,12);
+                string hash = GeoHashUtils.instance.calcGeoHash(i,j);
                 list.Add(new TestData() {
                     x =i,
                     y=j,
