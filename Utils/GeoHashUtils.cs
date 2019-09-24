@@ -1,4 +1,6 @@
-﻿namespace surfm.tool.realtimedb {
+﻿using UnityEngine;
+
+namespace surfm.tool.realtimedb {
     public class GeoHashUtils {
 
         private static GeoHashUtils _instance;
@@ -6,36 +8,30 @@
         private static readonly int BITS_PER_BASE32_CHAR = 5;
         private static readonly int MAX_PRECISION = 22;
         public static readonly string BASE32_CHARS = "0123456789bcdefghjkmnpqrstuvwxyz";
-
-        private double XMAX = ConstantRepo.getInstance().get<float>("Firebase.Geo.Xmax");
-        private double XMIN = ConstantRepo.getInstance().get<float>("Firebase.Geo.Xmin");
-        private double YMAX = ConstantRepo.getInstance().get<float>("Firebase.Geo.Ymax");
-        private double YMIN = ConstantRepo.getInstance().get<float>("Firebase.Geo.Ymin");
         private int PRECISION = (int)ConstantRepo.getInstance().get<float>("Firebase.Geo.Precision");
-
+        private float VECTOR_SCALE = ConstantRepo.getInstance().get<float>("Firebase.Geo.Vector.Scale");
 
         private GeoHashUtils() { }
+
+        public string calcVectorHash(Vector2 v2)  {
+            if (VECTOR_SCALE > 1 || VECTOR_SCALE <= 0) throw new System.Exception(VECTOR_SCALE+ " VECTOR_SCALE is not vaild");
+            v2 *= VECTOR_SCALE;
+            v2 += new Vector2(20,-45);
+            return calcGeoHash(v2.x,v2.y);
+        }
 
         public string calcGeoHash(double x,double y) {
             return calcGeoHash(
             x,
             y,
-            PRECISION,
-            XMAX,
-            XMIN,
-            YMAX,
-            YMIN
+            PRECISION
             );
         }
 
         public static string calcGeoHash(
             double x,
             double y,
-            int precision ,
-            double xMax, //90
-            double xMin, //-90
-            double yMax, //180
-            double yMin  //-180
+            int precision 
             ) {
             if (precision < 1) {
                 throw new System.Exception("Precision of GeoHash must be larger than zero!");
@@ -46,8 +42,8 @@
             if (!coordinatesValid(x, y)) {
                 throw new System.Exception(string.Format("Not valid location coordinates: [{0}, {1}]", x, y));
             }
-            double[] xRange = { xMin, xMax };
-            double[] yRange = { yMin, yMax };
+            double[] xRange = { -90, 90 };
+            double[] yRange = { -180, 180 };
 
             char[] buffer = new char[precision];
 

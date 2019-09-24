@@ -32,7 +32,7 @@ public class TestQuery : MonoBehaviour {
 
         DatabaseReference f = FirebaseDatabase.DefaultInstance.RootReference.Child("geo");
         //1 1  s00twy                4 4   s0dyg0
-        Query qf = f.OrderByChild("hash").StartAt(st).EndAt(end);
+        Query qf = f.OrderByChild("hash").StartAt(st).EndAt( end);
         qf.ChildAdded += (s, e) => {
             string json = e.Snapshot.GetRawJsonValue();
             Debug.Log("ChildAdded json:" + json);
@@ -66,12 +66,12 @@ public class TestQuery : MonoBehaviour {
         for (int i=-10;i<10;i++) {
             for (int j = -10; j < 10; j++) {
                 Vector2Int v = new Vector2Int(i,j);
-                string hash = GeoHashUtils.instance.calcGeoHash(i,j);
+                string hash = GeoHashUtils.instance.calcVectorHash(v);
                 list.Add(new TestData() {
                     x =i,
                     y=j,
                     name= "GEO_"+i+"_"+j,
-                    hash = hash
+                    hash = (i%2)+"_"+ hash
                 });
             }
         }
