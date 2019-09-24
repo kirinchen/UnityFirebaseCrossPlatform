@@ -17,7 +17,9 @@ namespace surfm.tool.realtimedb {
                 post();
                 fetchDoneCb.done();
             });
-            rObj.onFetchedCB.add(fetchDoneCb.done);
+            rObj.onFetchedCB.add(()=> {
+                fetchDoneCb.done();
+            });
             rObj.obj.Where(o => o != null).Subscribe(v => {
                 obj = v;
             });
@@ -38,7 +40,7 @@ namespace surfm.tool.realtimedb {
             Map<string, object> _da = new Map<string, object>();
             _da.put("hash", nShal);
             _da.put("data", obj);
-            RealtimeDBFactory.get().putJson(rObj.getPath(""), obj);
+            RealtimeDBFactory.get().putJson(rObj.getPath(""), _da);
 
         }
 

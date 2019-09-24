@@ -18,9 +18,9 @@ public class TestQuery : MonoBehaviour {
 
 
     private void onReslut(string s) {
-        List<TestData> list = CommUtils.convertByJson<List<TestData>>(s);
-        TestData t11 = list.Find(d=> d.x == 1 && d.y==1);
-        TestData t55 = list.Find(d => d.x == 5 && d.y == 5);
+        List<TestBundle> list = CommUtils.convertByJson<List<TestBundle>>(s);
+        TestData t11 = list.Find(d=> d.testData.x == 1 && d.testData.y==1).testData;
+        TestData t55 = list.Find(d => d.testData.x == 5 && d.testData.y == 5).testData;
         if (t11 == null) return;
         if (t55 == null) return;
         Debug.Log("Go Query");
@@ -32,7 +32,7 @@ public class TestQuery : MonoBehaviour {
 
         DatabaseReference f = FirebaseDatabase.DefaultInstance.RootReference.Child("geo");
         //1 1  s00twy                4 4   s0dyg0
-        Query qf = f.OrderByChild("hash").StartAt(st).EndAt( end);
+        Query qf = f.OrderByChild("testData/hash").StartAt(st).EndAt( end);
         qf.ChildAdded += (s, e) => {
             string json = e.Snapshot.GetRawJsonValue();
             Debug.Log("ChildAdded json:" + json);
@@ -44,6 +44,11 @@ public class TestQuery : MonoBehaviour {
         public float y;
         public string name;
         public string hash;
+    }
+
+    public class TestBundle {
+        public TestData testData;
+        public float ff;
     }
 
     public void putTestData() {
@@ -62,16 +67,20 @@ public class TestQuery : MonoBehaviour {
     public void testGeoHash() {
         DatabaseReference f = FirebaseDatabase.DefaultInstance.RootReference.Child("geo");
         Map<string, Vector2Int> map = new Map<string, Vector2Int>();
-        List<TestData> list = new List<TestData>();
+        List<TestBundle> list = new List<TestBundle>();
         for (int i=-10;i<10;i++) {
             for (int j = -10; j < 10; j++) {
                 Vector2Int v = new Vector2Int(i,j);
                 string hash = GeoHashUtils.instance.calcVectorHash(v);
-                list.Add(new TestData() {
+                TestData td = (new TestData() {
                     x =i,
                     y=j,
                     name= "GEO_"+i+"_"+j,
                     hash = (i%2)+"_"+ hash
+                });
+                list.Add(new TestBundle() {
+                    ff = i * j,
+                    testData = td
                 });
             }
         }
