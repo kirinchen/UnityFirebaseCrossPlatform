@@ -20,7 +20,7 @@ namespace surfm.tool.realtimedb {
             private Query query;
             public ListenerKind kind { get; private set; }
             public bool listened;
-            public List<Action<string>> list = new List<Action<string>>();
+            public List<object> cbList = new List<object>();
 
             internal Bundle(Query q,ListenerKind kind) {
                 query = q;
@@ -40,16 +40,22 @@ namespace surfm.tool.realtimedb {
             }
 
             public void valueHandler(object sender, ValueChangedEventArgs e) {
-                list.ForEach(cb => UnityMainThreadDispatcher.uniRxRun(() => { cb(e.Snapshot.GetRawJsonValue()); }));
+                cbList.ForEach(cb => {
+                    Action<string> _cb = (Action<string>)cb;
+                    UnityMainThreadDispatcher.uniRxRun(() => { _cb(e.Snapshot.GetRawJsonValue()); });
+                } );
             }
 
             public void childAddHandler(object sender, ChildChangedEventArgs e) {
-                list.ForEach(cb => UnityMainThreadDispatcher.uniRxRun(() => { cb(e.Snapshot.GetRawJsonValue()); }));
+                cbList.ForEach(cb => {
+                    ChildCB childCB = (ChildCB)cb;
+                    UnityMainThreadDispatcher.uniRxRun(() => { childCB(e.Snapshot.Key,e.Snapshot.GetRawJsonValue()); });
+                } );
             }
 
-            internal void add(Action<string> cb) {
-                if (list.Contains(cb)) return;
-                list.Add(cb);
+            internal void add(object cb) {
+                if (cbList.Contains(cb)) return;
+                cbList.Add(cb);
                 if (!listened) {
                     listened = true;
                     handle(query);
@@ -70,7 +76,7 @@ namespace surfm.tool.realtimedb {
         }
 
 
-        public void add(ListenerKind k,Action<string > cb) {
+        public void add(ListenerKind k,object cb) {
             Bundle b = bundles.Find(_b=> _b.kind == k);
             b.add(cb);
         }
