@@ -2,6 +2,8 @@
 
 namespace surfm.tool.realtimedb {
 
+    public delegate void ChildCB(string key, string val);
+
     public interface RealtimeDB {
         bool isInited();
         void init(FirebaseAuther fau);
@@ -9,6 +11,7 @@ namespace surfm.tool.realtimedb {
         void put(string path, object val, Action<Exception> exCB = null);
         void putJson(string path, object val, Action<Exception> exCB = null);
         void subscribe(string path,Action<string> val);
+        string query(string path ,string child,string start,string end ,ChildCB chuldAdded );
     }
 
     public interface FirebaseAuther {

@@ -35,8 +35,9 @@ public class TestQuery : MonoBehaviour {
         Query qf = f.OrderByChild("testData/hash").StartAt(st).EndAt( end);
         qf.ChildAdded += (s, e) => {
             string json = e.Snapshot.GetRawJsonValue();
-            Debug.Log("ChildAdded json:" + json);
+            Debug.Log("ChildAdded json:" + json+" key:"+e.Snapshot.Key);
         };
+        
     }
 
     public class TestData {

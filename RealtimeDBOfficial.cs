@@ -23,8 +23,6 @@ namespace surfm.tool.realtimedb {
         }
 
         private void onAuthed() {
-            Debug.Log("RealtimeDBOfficial onAuthed!");
-            FirebaseApp.DefaultInstance.SetEditorDatabaseUrl("https://dreamon-61d89.firebaseio.com/");
             initCB.done(this);
         }
 
@@ -44,16 +42,11 @@ namespace surfm.tool.realtimedb {
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
-
         }
 
         private DatabaseReference getPath(string path) {
-            string[] ps = path.Split('/');
             DatabaseReference f = FirebaseDatabase.DefaultInstance.RootReference;
-            foreach (string p in ps) {
-                f = f.Child(p);
-            }
-            return f;
+            return f.Child(path);
         }
 
         private Map<string, RealDBListener> subscribeMap = new Map<string, RealDBListener>();
@@ -62,25 +55,37 @@ namespace surfm.tool.realtimedb {
         public void subscribe(string path, Action<string> val) {
             if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
+            RealDBListener l = getAndInjectListener(path,f);
+            l.add(ListenerKind.Value,val);
+        }
+
+        private RealDBListener getAndInjectListener(string path , Query f) {
             RealDBListener l = null;
             if (!subscribeMap.ContainsKey(path)) {
-                l = subscribeMap.get(path, new RealDBListener(path));
-                f.ValueChanged += l.eventHandler;
+                l = subscribeMap.get(path, new RealDBListener(f,path));
             } else {
                 l = subscribeMap[path];
             }
-            l.add(val);
+            return l;
         }
 
         public void putJson(string path, object val, Action<Exception> exCB = null) {
             if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
-
             string json = CommUtils.toJson(val);
             Task t = f.SetRawJsonValueAsync(json);
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
+        }
+
+        public string query(string path, string child, string start, string end, ChildCB childCB) {
+            DatabaseReference f = FirebaseDatabase.DefaultInstance.RootReference.Child(path);
+            Query qf = f.OrderByChild(child).StartAt(start).EndAt(end);
+            string pathUid = path + "_" + child + "_" + start + "_" + end;
+            RealDBListener l = getAndInjectListener(pathUid, qf);
+            l.add(ListenerKind.ChildAdd,childCB);
+            return pathUid;
         }
     }
 }
