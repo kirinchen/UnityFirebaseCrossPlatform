@@ -1,6 +1,7 @@
 ﻿using Firebase.Database;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace surfm.tool.realtimedb {
 
@@ -22,11 +23,11 @@ namespace surfm.tool.realtimedb {
             public bool listened;
             public List<object> cbList = new List<object>();
 
-            internal Bundle(Query q,ListenerKind kind) {
+            internal Bundle(Query q, ListenerKind kind) {
                 query = q;
                 this.kind = kind;
             }
-
+            //TODO 這樣後加的CB 會無法執行
             public void handle(Query q) {
                 switch (kind) {
                     case ListenerKind.Value:
@@ -40,21 +41,27 @@ namespace surfm.tool.realtimedb {
             }
 
             public void valueHandler(object sender, ValueChangedEventArgs e) {
-                cbList.ForEach(cb => {
-                    Action<string> _cb = (Action<string>)cb;
-                    UnityMainThreadDispatcher.uniRxRun(() => { _cb(e.Snapshot.GetRawJsonValue()); });
-                } );
+                UnityMainThreadDispatcher.uniRxRun(() => {
+                    cbList.ForEach(cb => {
+                        Action<string> _cb = (Action<string>)cb;
+                        _cb(e.Snapshot.GetRawJsonValue());
+                    });
+                });
             }
 
             public void childAddHandler(object sender, ChildChangedEventArgs e) {
-                cbList.ForEach(cb => {
-                    ChildCB childCB = (ChildCB)cb;
-                    UnityMainThreadDispatcher.uniRxRun(() => { childCB(e.Snapshot.Key,e.Snapshot.GetRawJsonValue()); });
-                } );
+                UnityMainThreadDispatcher.uniRxRun(() => {
+                    cbList.ForEach(cb => {
+                        ChildCB childCB = (ChildCB)cb;
+                        childCB(e.Snapshot.Key, e.Snapshot.GetRawJsonValue());
+                    });
+                });
             }
 
             internal void add(object cb) {
-                if (cbList.Contains(cb)) return;
+                if (cbList.Contains(cb)) {
+                    return;
+                }
                 cbList.Add(cb);
                 if (!listened) {
                     listened = true;
@@ -70,14 +77,14 @@ namespace surfm.tool.realtimedb {
         internal RealDBListener(Query q, string p) {
             path = p;
             query = q;
-            bundles.Add(new Bundle(q,ListenerKind.Value));
-            bundles.Add(new Bundle(q,ListenerKind.ChildAdd));
+            bundles.Add(new Bundle(q, ListenerKind.Value));
+            bundles.Add(new Bundle(q, ListenerKind.ChildAdd));
 
         }
 
 
-        public void add(ListenerKind k,object cb) {
-            Bundle b = bundles.Find(_b=> _b.kind == k);
+        public void add(ListenerKind k, object cb) {
+            Bundle b = bundles.Find(_b => _b.kind == k);
             b.add(cb);
         }
 

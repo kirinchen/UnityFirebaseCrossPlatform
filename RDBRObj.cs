@@ -12,11 +12,13 @@ namespace surfm.tool.realtimedb {
         public bool dataSubscribed { get; private set; }
         public CallbackList onEmptyCB { get; private set; } = new CallbackList();
         public CallbackList onFetchedCB { get; private set; } = new CallbackList();
+        public string dev;
 
 
         protected abstract string pathPrefix();
 
-        public RDBRObj(string u) {
+        public RDBRObj(string u , string _dev) {
+            dev = _dev;
             uid = u;
             obj = new ReactiveProperty<T>(loadData());
             RealtimeDBFactory.get().initDoneCB().add(init);
@@ -27,15 +29,15 @@ namespace surfm.tool.realtimedb {
         }
 
         private void init(RealtimeDB rdb) {
-            Debug.Log(GetType() + " init:" + rdb);
-
             string hashPath = getPath(DATA_HASH_PATH);
+            Debug.Log("debug:" + dev + " type:" + GetType() + " init:" + rdb + " hashPath:" + hashPath);
             rdb.subscribe(hashPath, onHash);
         }
 
         private void onHash(string obj) {
             if (string.IsNullOrWhiteSpace(obj)) onEmptyCB.done();
             bool fetched = true;
+            Debug.Log("onHash:" + obj + " dataSubscribed:" + dataSubscribed);
             if (!dataSubscribed) {
                 string orgSha1 = loadHash();
                 if (!orgSha1.Equals(obj)) {
@@ -50,6 +52,7 @@ namespace surfm.tool.realtimedb {
 
         private void subscribeData() {
             string dataPath = getPath(DATA_PATH);
+            Debug.Log("subscribeData:" + dataPath);
             RealtimeDBFactory.get().subscribe(dataPath, s => {
                 replaceData(s);
                 dataSubscribed = true;

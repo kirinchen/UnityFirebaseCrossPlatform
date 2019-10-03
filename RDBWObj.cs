@@ -23,7 +23,6 @@ namespace surfm.tool.realtimedb {
             rObj.obj.Where(o => o != null).Subscribe(v => {
                 obj = v;
             });
-            fetchDoneCb.add(() => Debug.Log("done:" + CommUtils.toJson(obj)));
         }
 
 
