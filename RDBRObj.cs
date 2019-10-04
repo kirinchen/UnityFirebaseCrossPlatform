@@ -37,7 +37,6 @@ namespace surfm.tool.realtimedb {
         private void onHash(string obj) {
             if (string.IsNullOrWhiteSpace(obj)) onEmptyCB.done();
             bool fetched = true;
-            Debug.Log("onHash:" + obj + " dataSubscribed:" + dataSubscribed);
             if (!dataSubscribed) {
                 string orgSha1 = loadHash();
                 if (!orgSha1.Equals(obj)) {

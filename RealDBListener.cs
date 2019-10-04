@@ -1,7 +1,6 @@
 ﻿using Firebase.Database;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace surfm.tool.realtimedb {
 
@@ -9,6 +8,66 @@ namespace surfm.tool.realtimedb {
         Value, ChildAdd
     }
 
+
+    public static class ListenerEx {
+
+        public static Event genEvent(this ListenerKind kind,Query q,object cb) {
+            switch (kind) {
+                case ListenerKind.Value:
+                    return new ValueEvent(q,cb);
+                case ListenerKind.ChildAdd:
+                    return new ChildAddEvent(q,cb);
+            }
+            throw new NullReferenceException("Not Support kind:"+kind);
+        }
+
+        public static bool exist(this List<Event> events, object cb) {
+            return events.Exists(e=> e.cb.Equals(cb));
+        }
+
+    }
+
+    public abstract class Event {
+        private Query query;
+        public object cb { get; private set; }
+        internal Event(Query q, object c) {
+            query = q;
+            cb = c;
+            inject(query);
+        }
+        internal abstract void inject(Query q);
+    }
+
+    public class ValueEvent : Event {
+        public ValueEvent(Query q, object c) : base(q, c) { }
+
+        internal override void inject(Query q) {
+            q.ValueChanged += valueHandler;
+        }
+
+        public void valueHandler(object sender, ValueChangedEventArgs e) {
+            UnityMainThreadDispatcher.uniRxRun(() => {
+                Action<string> _cb = (Action<string>)cb;
+                _cb(e.Snapshot.GetRawJsonValue());
+            });
+        }
+    }
+
+    public class ChildAddEvent : Event {
+        public ChildAddEvent(Query q, object c) : base(q, c) { }
+
+        internal override void inject(Query q) {
+            q.ChildAdded += childAddHandler;
+        }
+
+        public void childAddHandler(object sender, ChildChangedEventArgs e) {
+            UnityMainThreadDispatcher.uniRxRun(() => {
+                ChildCB childCB = (ChildCB)cb;
+                childCB(e.Snapshot.Key, e.Snapshot.GetRawJsonValue());
+            });
+
+        }
+    }
 
     public class RealDBListener {
 
@@ -20,53 +79,19 @@ namespace surfm.tool.realtimedb {
         public class Bundle {
             private Query query;
             public ListenerKind kind { get; private set; }
-            public bool listened;
-            public List<object> cbList = new List<object>();
+            public List<Event> cbList = new List<Event>();
 
             internal Bundle(Query q, ListenerKind kind) {
                 query = q;
                 this.kind = kind;
             }
-            //TODO 這樣後加的CB 會無法執行
-            public void handle(Query q) {
-                switch (kind) {
-                    case ListenerKind.Value:
-                        q.ValueChanged += valueHandler;
-                        return;
-                    case ListenerKind.ChildAdd:
-                        q.ChildAdded += childAddHandler;
-                        return;
-                }
-                throw new Exception("Not Support :" + kind);
-            }
-
-            public void valueHandler(object sender, ValueChangedEventArgs e) {
-                UnityMainThreadDispatcher.uniRxRun(() => {
-                    cbList.ForEach(cb => {
-                        Action<string> _cb = (Action<string>)cb;
-                        _cb(e.Snapshot.GetRawJsonValue());
-                    });
-                });
-            }
-
-            public void childAddHandler(object sender, ChildChangedEventArgs e) {
-                UnityMainThreadDispatcher.uniRxRun(() => {
-                    cbList.ForEach(cb => {
-                        ChildCB childCB = (ChildCB)cb;
-                        childCB(e.Snapshot.Key, e.Snapshot.GetRawJsonValue());
-                    });
-                });
-            }
 
             internal void add(object cb) {
-                if (cbList.Contains(cb)) {
+                if (cbList.exist(cb)) {
                     return;
                 }
-                cbList.Add(cb);
-                if (!listened) {
-                    listened = true;
-                    handle(query);
-                }
+                Event e= kind.genEvent(query,cb);
+                cbList.Add(e);
             }
         }
 
@@ -87,8 +112,6 @@ namespace surfm.tool.realtimedb {
             Bundle b = bundles.Find(_b => _b.kind == k);
             b.add(cb);
         }
-
-
 
     }
 }
