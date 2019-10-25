@@ -5,7 +5,7 @@ using Firebase.Auth;
 namespace surfm.tool.realtimedb {
     public class FirebaseAuthOfficial : FirebaseAuther {
         private Firebase.Auth.FirebaseUser user;
-        private CallbackList initCB = new CallbackList();
+        private InitCallBack initCB = new InitCallBack();
         private string email = ConstantRepo.getInstance().get<string>("RealtimeDB.email");
         private string pass = ConstantRepo.getInstance().get<string>("RealtimeDB.pass");
 
@@ -35,7 +35,7 @@ namespace surfm.tool.realtimedb {
             return this;
         }
 
-        public CallbackList authDoneCB() {
+        public InitCallBack authDoneCB() {
             return initCB;
         }
     }

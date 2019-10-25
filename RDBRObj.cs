@@ -10,8 +10,8 @@ namespace surfm.tool.realtimedb {
         public IReactiveProperty<T> obj { get; private set; }
         public string uid { get; private set; }
         public bool dataSubscribed { get; private set; }
-        public CallbackList onEmptyCB { get; private set; } = new CallbackList();
-        public CallbackList onFetchedCB { get; private set; } = new CallbackList();
+        public InitCallBack onEmptyCB { get; private set; } = new InitCallBack();
+        public InitCallBack onFetchedCB { get; private set; } = new InitCallBack();
         public string dev;
 
 

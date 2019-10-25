@@ -6,7 +6,7 @@ namespace surfm.tool.realtimedb {
     public abstract class RDBWObj<T> {
 
         public RDBRObj<T> rObj { get; private set; }
-        public CallbackList fetchDoneCb { get; private set; } = new CallbackList();
+        public InitCallBack fetchDoneCb { get; private set; } = new InitCallBack();
         public T obj { get; private set; }
         public Action<T> postedCB = t=> { };
         public string uid { get { return rObj.uid; } }

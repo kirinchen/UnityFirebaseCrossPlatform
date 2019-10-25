@@ -16,7 +16,7 @@ namespace surfm.tool.realtimedb {
 
     public interface FirebaseAuther {
         FirebaseAuther auth();
-        CallbackList authDoneCB();
+        InitCallBack authDoneCB();
     }
 
 

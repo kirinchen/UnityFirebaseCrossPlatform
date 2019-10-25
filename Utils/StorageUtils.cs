@@ -7,7 +7,7 @@ namespace surfm.tool.realtimedb {
     public class StorageUtils {
 
         private static StorageUtils _instance;
-        public CallbackList authDoneCB;
+        public InitCallBack authDoneCB;
         private string bucketUrl = ConstantRepo.getInstance().get<string>("Firebase.Storage.bucketUrl");
 
         private StorageUtils() {
