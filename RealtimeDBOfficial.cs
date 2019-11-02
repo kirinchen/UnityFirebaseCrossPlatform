@@ -1,8 +1,6 @@
 ﻿#if !UNITY_WEBGL
 
-using Firebase;
 using Firebase.Database;
-using Firebase.Unity.Editor;
 using System;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -55,14 +53,14 @@ namespace surfm.tool.realtimedb {
         public void subscribe(string path, Action<string> val) {
             if (!isInited()) throw new NullReferenceException("Not Login");
             DatabaseReference f = getPath(path);
-            RealDBListener l = getAndInjectListener(path,f);
-            l.add(ListenerKind.Value,val);
+            RealDBListener l = getAndInjectListener(path, f);
+            l.add(ListenerKind.Value, val);
         }
 
-        private RealDBListener getAndInjectListener(string path , Query f) {
+        private RealDBListener getAndInjectListener(string path, Query f) {
             RealDBListener l = null;
             if (!subscribeMap.ContainsKey(path)) {
-                l = subscribeMap.get(path, new RealDBListener(f,path));
+                l = subscribeMap.get(path, new RealDBListener(f, path));
             } else {
                 l = subscribeMap[path];
             }
@@ -77,6 +75,7 @@ namespace surfm.tool.realtimedb {
             t.ContinueWith(task => {
                 exCB?.Invoke(task.Exception);
             });
+            Debug.Log("path:" + path + " val:" + val);
         }
 
         public string query(string path, string child, string start, string end, ChildCB childCB) {
@@ -84,7 +83,7 @@ namespace surfm.tool.realtimedb {
             Query qf = f.OrderByChild(child).StartAt(start).EndAt(end);
             string pathUid = path + "_" + child + "_" + start + "_" + end;
             RealDBListener l = getAndInjectListener(pathUid, qf);
-            l.add(ListenerKind.ChildAdd,childCB);
+            l.add(ListenerKind.ChildAdd, childCB);
             return pathUid;
         }
     }
